@@ -28,6 +28,9 @@ find . -type f \( -name "*.json" -o -name "*.ts" -o -name "*.md" -o -name "*.yml
   -e "s/{{PACKAGE_DESCRIPTION}}/$PACKAGE_DESCRIPTION/g" \
   -e "s/{{REPO_NAME}}/$REPO_NAME/g" {} \;
 
+# Update release-please manifest version (optional, for first release)
+# echo '{ ".": "1.0.0" }' > .release-please-manifest.json
+
 # Install dependencies
 bun install
 
@@ -46,6 +49,8 @@ bun test
 - `tsconfig.build.json` - Build-specific TypeScript config
 - `biome.json` - Linter and formatter configuration
 - `bunfig.toml` - Bun configuration
+- `release-please-config.json` - Release Please configuration
+- `.release-please-manifest.json` - Version tracking for Release Please
 - `.gitignore` - Git ignore patterns
 
 ### Source Files
@@ -61,7 +66,7 @@ bun test
 
 ### GitHub Configuration
 - `.github/workflows/ci.yml` - CI workflow
-- `.github/workflows/release-please.yml` - Release automation
+- `.github/workflows/release-please.yml` - Release automation with OIDC
 - `.github/ISSUE_TEMPLATE/` - Issue templates
 - `.github/PULL_REQUEST_TEMPLATE.md` - PR template
 
@@ -69,7 +74,6 @@ bun test
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Run in watch mode |
 | `bun run build` | Build ESM, CJS, and .d.ts |
 | `bun test` | Run tests |
 | `bun run test:coverage` | Run tests with coverage |
@@ -81,12 +85,36 @@ bun test
 
 ## Publishing Requirements
 
-Before publishing to npm:
+### First-Time Setup
 
-1. Replace `NPM_TOKEN` secret in GitHub repository settings
-2. Update `keywords` in `package.json`
-3. Write proper documentation in `README.md`
-4. Ensure tests pass with 100% coverage
+1. **Initial Publish** (one-time, creates the package on npm):
+   ```bash
+   npm login
+   npm publish --access public
+   ```
+
+2. **Configure npm Trusted Publishers** for OIDC:
+   - Go to [npmjs.com](https://www.npmjs.com/) → Your Package → **Settings**
+   - Navigate to **Publishing access** → **Trusted Publishers**
+   - Add GitHub Actions:
+     - **Repository**: `CarlLee1983/{{REPO_NAME}}`
+     - **Workflow**: `release-please.yml`
+     - **Environment**: (leave empty)
+
+3. **Verify**: After setup, all future releases will be automated via Release Please + OIDC
+
+### Conventional Commits
+
+Use these commit prefixes for automatic versioning:
+
+| Prefix | Version Bump | Example |
+|--------|--------------|---------|
+| `feat:` | Minor (1.0.0 → 1.1.0) | `feat: add new API method` |
+| `fix:` | Patch (1.0.0 → 1.0.1) | `fix: resolve timeout issue` |
+| `perf:` | Patch | `perf: optimize query speed` |
+| `feat!:` or `BREAKING CHANGE:` | Major (1.0.0 → 2.0.0) | `feat!: redesign API` |
+
+Other prefixes (`chore:`, `ci:`, `docs:`, `test:`, `refactor:`) won't trigger releases.
 
 ## GitHub Template Repository
 

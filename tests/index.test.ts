@@ -7,6 +7,10 @@ describe('{{PACKAGE_NAME}}', () => {
     it('should export the correct version from package.json', () => {
       expect(VERSION).toBe(packageJson.version)
     })
+
+    it('should be a valid semver string', () => {
+      expect(VERSION).toMatch(/^\d+\.\d+\.\d+/)
+    })
   })
 
   // TODO: Add more tests here
